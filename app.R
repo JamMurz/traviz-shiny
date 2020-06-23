@@ -20,7 +20,7 @@ ui <- fluidPage(
                 condition = "input.function == 'Plot trajectories'",
                 sliderInput("num_tracks", "Number of tracks to plot: ",
                             min = 1, max = 20,
-                            value = 1)
+                            value = 1, step = 1)
             )
 
 
@@ -34,8 +34,6 @@ ui <- fluidPage(
 server <- function(input, output) {
     load("data/ec.trj.rda")
     track1 <- sfTrack(ec.trj[20,])
-    track2 <- sfTrack(ec.trj[21,])
-    track3 <- sfTrack(ec.trj[22,])
     output$plot <- renderPlot({
         plot(track1)
     })
