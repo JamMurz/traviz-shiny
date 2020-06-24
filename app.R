@@ -38,6 +38,18 @@ ui <- fluidPage(
                 sliderInput("raster_resolution", "Pixel resolution",
                             min = .0001, max = .003,
                             value = .0001, step = .0001)
+            ),
+
+            conditionalPanel(
+                condition = "input.functions == 'Show heatmap of value'",
+                selectInput("heatmap_value",
+                            label = "Choose value to rasterize",
+                            choices = c("CO2.value",
+                                        "Speed.value",
+                                        "Consumption.value")),
+                sliderInput("heatmap_resolution", "Pixel resolution",
+                            min = .0001, max = .003,
+                            value = .0001, step = .0001)
             )
 
 
@@ -46,7 +58,6 @@ ui <- fluidPage(
         mainPanel(plotOutput("traj_plot"))
 
     )
-
 )
 
 server <- function(input, output) {
@@ -69,12 +80,16 @@ server <- function(input, output) {
         return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution))
     })
 
+    tracks_heatmap <- reactive({
+        return(density_heatmap(ec.trj_un, input$heatmap_value, resolution = input$heatmap_resolution))
+    })
+
 
     output$traj_plot <- renderPlot({
         if(input$functions == "Plot trajectories") {plot.sfTracks(tracks_subset())}
         else if(input$functions == "Plot trajectory intersections") {tracks_intersection()}
         else if(input$functions == "Rasterize data with value") {plot(tracks_rasterize())}
-
+        else if(input$functions == "Show heatmap of value") {(tracks_heatmap())}
     })
 }
 
