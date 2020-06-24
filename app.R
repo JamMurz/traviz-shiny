@@ -25,7 +25,7 @@ ui <- fluidPage(
 
 
         ),
-        mainPanel(plotOutput("plot"))
+        mainPanel(plotOutput("traj_plot"))
 
     )
 
@@ -39,7 +39,7 @@ server <- function(input, output) {
         tracks <- df_to_sfTracks(ec.trj[1:input$num_tracks,])
         return(tracks)
     })
-    output$plot <- renderPlot({
+    output$traj_plot <- renderPlot({
         if(input$functions == "Plot trajectories") {plot.sfTracks(tracks_subset())}
     })
 }
