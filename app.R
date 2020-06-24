@@ -37,7 +37,14 @@ ui <- fluidPage(
                                         "Consumption.value")),
                 sliderInput("raster_resolution", "Pixel resolution",
                             min = .0001, max = .003,
-                            value = .0001, step = .0001)
+                            value = .0001, step = .0001),
+                sliderInput("time", "Time range",
+                            min = as.POSIXct("2019-10-25 15:19:26"),
+                            max = as.POSIXct("2020-05-10 01:22:21"),
+                            value = c(as.POSIXct("2019-10-25 15:19:26"),
+                                      as.POSIXct("2020-05-10 01:22:21")),
+                            step = 60)
+
             ),
 
             conditionalPanel(
@@ -77,7 +84,7 @@ server <- function(input, output) {
     })
 
     tracks_rasterize <- reactive({
-        return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution))
+        return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution, from =as.POSIXct(input$time[1]), to =as.POSIXct(input$time[2])))
     })
 
     tracks_heatmap <- reactive({
