@@ -24,9 +24,20 @@ ui <- fluidPage(
             ),
             conditionalPanel(
                 condition = "input.functions == 'Plot trajectory intersections'",
-                sliderInput("intersect_track", "Track to determine if it intersects with: ",
+                sliderInput("intersect_track", "Track to find intersection with: ",
                             min = 2, max = 20,
                             value = 2, step = 1)
+            ),
+            conditionalPanel(
+                condition = "input.functions == 'Rasterize data with value'",
+                selectInput("raster_value",
+                            label = "Choose value to rasterize",
+                            choices = c("CO2.value",
+                                        "Speed.value",
+                                        "Consumption.value")),
+                sliderInput("raster_resolution", "Pixel resolution",
+                            min = .0001, max = .003,
+                            value = .0001, step = .0001)
             )
 
 
@@ -42,8 +53,8 @@ server <- function(input, output) {
     load("data/ec.trj.rda")
     #subset data for speed
     ec.trj <- ec.trj[50:70,]
+    ec.trj_un <- ec.trj %>% unnest
     sftc <- df_to_sfTracks(ec.trj)
-
     tracks_subset <- reactive({
         tracks <- df_to_sfTracks(ec.trj[1:input$num_tracks,])
         return(tracks)
@@ -54,9 +65,16 @@ server <- function(input, output) {
         return(intersection)
     })
 
+    tracks_rasterize <- reactive({
+        return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution))
+    })
+
+
     output$traj_plot <- renderPlot({
         if(input$functions == "Plot trajectories") {plot.sfTracks(tracks_subset())}
         else if(input$functions == "Plot trajectory intersections") {tracks_intersection()}
+        else if(input$functions == "Rasterize data with value") {plot(tracks_rasterize())}
+
     })
 }
 
