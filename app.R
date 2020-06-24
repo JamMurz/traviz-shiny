@@ -84,12 +84,17 @@ server <- function(input, output) {
         return(density_heatmap(ec.trj_un, input$heatmap_value, resolution = input$heatmap_resolution))
     })
 
+    tracks_quadrat <- reactive({
+        return(traj_quadrat(ec.trj_un))
+    })
 
     output$traj_plot <- renderPlot({
         if(input$functions == "Plot trajectories") {plot.sfTracks(tracks_subset())}
         else if(input$functions == "Plot trajectory intersections") {tracks_intersection()}
         else if(input$functions == "Rasterize data with value") {plot(tracks_rasterize())}
         else if(input$functions == "Show heatmap of value") {(tracks_heatmap())}
+        else if(input$functions == "Show quadrat heatmap of value") {tracks_quadrat()}
+
     })
 }
 
