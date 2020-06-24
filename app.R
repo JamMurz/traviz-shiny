@@ -7,7 +7,7 @@ ui <- fluidPage(
         sidebarPanel(
             helpText("Visualize and analyze enviroCar trajectory data in Munster, Germany"),
 
-            selectInput("function",
+            selectInput("functions",
                         label = "Choose a traviz method to use",
                         choices = c("Plot trajectories",
                                     "Plot trajectory intersections",
@@ -17,7 +17,7 @@ ui <- fluidPage(
                         selected = "Plot trajectories"),
 
             conditionalPanel(
-                condition = "input.function == 'Plot trajectories'",
+                condition = "input.functions == 'Plot trajectories'",
                 sliderInput("num_tracks", "Number of tracks to plot: ",
                             min = 1, max = 20,
                             value = 1, step = 1)
@@ -33,9 +33,14 @@ ui <- fluidPage(
 
 server <- function(input, output) {
     load("data/ec.trj.rda")
-    track1 <- sfTrack(ec.trj[20,])
+    #subset data for speed
+    ec.trj <- ec.trj[40:70,]
+    tracks_subset <- reactive({
+        tracks <- df_to_sfTracks(ec.trj[1:input$num_tracks,])
+        return(tracks)
+    })
     output$plot <- renderPlot({
-        plot(track1)
+        if(input$functions == "Plot trajectories") {plot.sfTracks(tracks_subset())}
     })
 }
 
