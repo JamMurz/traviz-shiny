@@ -14,7 +14,7 @@ ui <- fluidPage(
                                     "Rasterize data with value",
                                     "Show heatmap of value",
                                     "Show quadrat heatmap of value",
-                                    "Show clusters of trajectories"),
+                                    "Show Frechet distance clusters of trajectories"),
                         selected = "Plot trajectories"),
 
             conditionalPanel(
@@ -61,7 +61,7 @@ ui <- fluidPage(
             ),
 
             conditionalPanel(
-                condition = "input.functions == 'Show clusters of trajectories'",
+                condition = "input.functions == 'Show Frechet distance clusters of trajectories'",
                 sliderInput("num_clusters", "Number of clusters",
                             min = 1, max = 20,
                             value = 1, step = 1)
