@@ -46,7 +46,8 @@ ui <- fluidPage(
                             max = as.POSIXct("2020-05-10 01:22:21"),
                             value = c(min(ec.trj_un$time),
                                       max(ec.trj_un$time)),
-                            step = 60)
+                            step = 60),
+                checkboxInput("idwi", "Use inverse distance weighted interpolation?", FALSE)
 
             ),
 
@@ -109,7 +110,13 @@ server <- function(input, output) {
     })
 
     tracks_rasterize <- reactive({
-        return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution, from =as.POSIXct(input$time[1]), to =as.POSIXct(input$time[2])))
+        if(input$idwi == FALSE){
+            return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution, from =as.POSIXct(input$time[1]), to =as.POSIXct(input$time[2])))
+        }
+        else{
+            library(gstat)
+            return(idwi_raster(ec.trj_un, measurement = input$raster_value, resolution = input$raster_resolution))
+        }
     })
 
     tracks_heatmap <- reactive({
@@ -126,7 +133,7 @@ server <- function(input, output) {
 
     output$traj_plot <- renderPlot({
         if(input$functions == "Plot trajectories") {plot.sfTracks(tracks_subset())}
-        else if (input$functions == "Plot trajectories point values") {tracks_pv()}
+        else if(input$functions == "Plot trajectories point values") {tracks_pv()}
         else if(input$functions == "Plot trajectory intersections") {tracks_intersection()}
         else if(input$functions == "Rasterize data with value") {plot(tracks_rasterize())}
         else if(input$functions == "Show heatmap of value") {(tracks_heatmap())}
