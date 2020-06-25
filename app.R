@@ -1,5 +1,6 @@
 library(shiny)
 library(traviz)
+library(raster)
 
 ui <- fluidPage(
     titlePanel("traviz Demo with enviroCar data"),
@@ -10,6 +11,7 @@ ui <- fluidPage(
             selectInput("functions",
                         label = "Choose a traviz method to use",
                         choices = c("Plot trajectories",
+                                    "Plot trajectories point values",
                                     "Plot trajectory intersections",
                                     "Rasterize data with value",
                                     "Show heatmap of value",
@@ -19,15 +21,15 @@ ui <- fluidPage(
 
             conditionalPanel(
                 condition = "input.functions == 'Plot trajectories'",
-                sliderInput("num_tracks", "Number of tracks to plot: ",
+                sliderInput("num_tracks", "Tracks to plot: ",
                             min = 1, max = 20,
-                            value = 1, step = 1)
+                            value = c(1,2), step = 1)
             ),
             conditionalPanel(
                 condition = "input.functions == 'Plot trajectory intersections'",
                 sliderInput("intersect_track", "Track to find intersection with: ",
                             min = 2, max = 20,
-                            value = 2, step = 1)
+                            value = 2, step = 1),
             ),
             conditionalPanel(
                 condition = "input.functions == 'Rasterize data with value'",
@@ -42,8 +44,8 @@ ui <- fluidPage(
                 sliderInput("time", "Time range",
                             min = as.POSIXct("2019-10-25 15:19:26"),
                             max = as.POSIXct("2020-05-10 01:22:21"),
-                            value = c(as.POSIXct("2019-10-25 15:19:26"),
-                                      as.POSIXct("2020-05-10 01:22:21")),
+                            value = c(min(ec.trj_un$time),
+                                      max(ec.trj_un$time)),
                             step = 60)
 
             ),
@@ -66,7 +68,16 @@ ui <- fluidPage(
                             min = 1, max = 20,
                             value = 1, step = 1)
 
-            )
+            ),
+
+           conditionalPanel(
+               condition = "input.functions == 'Plot trajectories point values'",
+               selectInput("point_values",
+                           label = "Choose point value",
+                           choices = c("CO2.value",
+                                       "Speed.value",
+                                       "Consumption.value")),
+           )
 
 
 
@@ -79,12 +90,17 @@ ui <- fluidPage(
 server <- function(input, output) {
     load("data/ec.trj.rda")
     #subset data for speed
-    ec.trj <- ec.trj[50:70,]
+    ec.trj <- ec.trj[74:93,]
     ec.trj_un <- ec.trj %>% unnest
     sftc <- df_to_sfTracks(ec.trj)
+
     tracks_subset <- reactive({
-        tracks <- df_to_sfTracks(ec.trj[1:input$num_tracks,])
+        tracks <- df_to_sfTracks(ec.trj[input$num_tracks[1]:input$num_tracks[2],])
         return(tracks)
+    })
+
+    tracks_pv <- reactive({
+        return(plot.sfTracks(sftc, input$point_values))
     })
 
     tracks_intersection <- reactive({
@@ -110,6 +126,7 @@ server <- function(input, output) {
 
     output$traj_plot <- renderPlot({
         if(input$functions == "Plot trajectories") {plot.sfTracks(tracks_subset())}
+        else if (input$functions == "Plot trajectories point values") {tracks_pv()}
         else if(input$functions == "Plot trajectory intersections") {tracks_intersection()}
         else if(input$functions == "Rasterize data with value") {plot(tracks_rasterize())}
         else if(input$functions == "Show heatmap of value") {(tracks_heatmap())}
