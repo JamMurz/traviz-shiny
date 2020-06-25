@@ -13,7 +13,8 @@ ui <- fluidPage(
                                     "Plot trajectory intersections",
                                     "Rasterize data with value",
                                     "Show heatmap of value",
-                                    "Show quadrat heatmap of value"),
+                                    "Show quadrat heatmap of value",
+                                    "Show clusters of trajectories"),
                         selected = "Plot trajectories"),
 
             conditionalPanel(
@@ -57,6 +58,14 @@ ui <- fluidPage(
                 sliderInput("heatmap_resolution", "Pixel resolution",
                             min = .0001, max = .003,
                             value = .0001, step = .0001)
+            ),
+
+            conditionalPanel(
+                condition = "input.functions == 'Show clusters of trajectories'",
+                sliderInput("num_clusters", "Number of clusters",
+                            min = 1, max = 20,
+                            value = 1, step = 1)
+
             )
 
 
@@ -95,13 +104,17 @@ server <- function(input, output) {
         return(traj_quadrat(ec.trj_un))
     })
 
+    tracks_cluster <- reactive({
+        return(cluster_traj(ec.trj, input$num_clusters))
+    })
+
     output$traj_plot <- renderPlot({
         if(input$functions == "Plot trajectories") {plot.sfTracks(tracks_subset())}
         else if(input$functions == "Plot trajectory intersections") {tracks_intersection()}
         else if(input$functions == "Rasterize data with value") {plot(tracks_rasterize())}
         else if(input$functions == "Show heatmap of value") {(tracks_heatmap())}
         else if(input$functions == "Show quadrat heatmap of value") {tracks_quadrat()}
-
+        else if(input$functions == "Show Frechet distance clusters of trajectories") {plot(tracks_cluster())}
     })
 }
 
