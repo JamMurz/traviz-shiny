@@ -28,8 +28,8 @@ ui <- fluidPage(
             conditionalPanel(
                 condition = "input.functions == 'Plot trajectory intersections'",
                 sliderInput("intersect_track", "Track to find intersection with: ",
-                            min = 2, max = 20,
-                            value = 2, step = 1),
+                            min = 1, max = 20,
+                            value = c(1,2), step = 1),
             ),
             conditionalPanel(
                 condition = "input.functions == 'Rasterize data with value'",
@@ -42,8 +42,8 @@ ui <- fluidPage(
                             min = .0001, max = .003,
                             value = .0001, step = .0001),
                 sliderInput("time", "Time range",
-                            min = as.POSIXct("2019-10-25 15:19:26"),
-                            max = as.POSIXct("2020-05-10 01:22:21"),
+                            min = min(ec.trj_un$time),
+                            max = max(ec.trj_un$time),
                             value = c(min(ec.trj_un$time),
                                       max(ec.trj_un$time)),
                             step = 60),
@@ -91,7 +91,7 @@ ui <- fluidPage(
 server <- function(input, output) {
     load("data/ec.trj.rda")
     #subset data for speed
-    ec.trj <- ec.trj[74:93,]
+    ec.trj <- ec.trj[63:83,]
     ec.trj_un <- ec.trj %>% unnest
     sftc <- df_to_sfTracks(ec.trj)
 
@@ -105,13 +105,13 @@ server <- function(input, output) {
     })
 
     tracks_intersection <- reactive({
-        intersection <- intersection.sfTrack(sftc@tracks[[1]], sftc@tracks[[input$intersect_track]])
+        intersection <- intersection.sfTrack(sftc@tracks[[input$intersect_track[1]]], sftc@tracks[[input$intersect_track[2]]])
         return(intersection)
     })
 
     tracks_rasterize <- reactive({
         if(input$idwi == FALSE){
-            return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution, from =as.POSIXct(input$time[1]), to =as.POSIXct(input$time[2])))
+            return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution, from =input$time[1], to = input$time[2]))
         }
         else{
             library(gstat)
