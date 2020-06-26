@@ -38,15 +38,25 @@ ui <- fluidPage(
                             choices = c("CO2.value",
                                         "Speed.value",
                                         "Consumption.value")),
+
                 sliderInput("raster_resolution", "Pixel resolution",
                             min = .0001, max = .003,
                             value = .0001, step = .0001),
-                sliderInput("time", "Time range",
-                            min = min(ec.trj_un$time),
-                            max = max(ec.trj_un$time),
-                            value = c(min(ec.trj_un$time),
-                                      max(ec.trj_un$time)),
-                            step = 60),
+
+                sliderInput("lat", "Latitude",
+                            min = as.numeric(st_bbox(ec.trj_rast)[1]),
+                            max = as.numeric(st_bbox(ec.trj_rast)[3]),
+                            value = c(as.numeric(st_bbox(ec.trj_rast)[1]),
+                                      as.numeric(st_bbox(ec.trj_rast)[3])),
+                            step = .01),
+
+                sliderInput("lon", "Longitude",
+                            min = as.numeric(st_bbox(ec.trj_rast)[2]),
+                            max = as.numeric(st_bbox(ec.trj_rast)[4]),
+                            value = c(as.numeric(st_bbox(ec.trj_rast)[2]),
+                                      as.numeric(st_bbox(ec.trj_rast)[4])),
+                            step = .01),
+
                 checkboxInput("idwi", "Use inverse distance weighted interpolation?", FALSE)
 
             ),
@@ -91,9 +101,11 @@ ui <- fluidPage(
 server <- function(input, output) {
     load("data/ec.trj.rda")
     #subset data for speed
+    ec.trj_rast <- ec.trj[1:20,]
     ec.trj <- ec.trj[63:83,]
+
     ec.trj_un <- ec.trj %>% unnest
-    sftc <- df_to_sfTracks(ec.trj)
+    ec.trj_rast_un <- ec.trj_rast %>% unnest
 
     tracks_subset <- reactive({
         tracks <- df_to_sfTracks(ec.trj[input$num_tracks[1]:input$num_tracks[2],])
@@ -111,10 +123,12 @@ server <- function(input, output) {
 
     tracks_rasterize <- reactive({
         if(input$idwi == FALSE){
-            return(sf_to_rasterize(ec.trj_un, data = input$raster_value, resolution = input$raster_resolution, from =input$time[1], to = input$time[2]))
+            return(aggregate_raster_region(sf_to_rasterize(ec.trj_rast_un, data = input$raster_value, resolution = input$raster_resolution),
+                                           xmin = input$lat[1], xmax = input$lat[2], ymin = input$lon[1], ymax = input$lon[2]))
         }
         else{
             library(gstat)
+            #TO do: add aggregation to idwi
             return(idwi_raster(ec.trj_un, measurement = input$raster_value, resolution = input$raster_resolution))
         }
     })
