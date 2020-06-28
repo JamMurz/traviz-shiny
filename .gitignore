@@ -41,6 +41,4 @@ vignettes/*.pdf
 # pkgdown site
 docs/
 
-docs/rsconnect
-inst/docs/rsconnect
-rsconnect
+/home/john/Desktop/traviz-shiny/rsconnect/
