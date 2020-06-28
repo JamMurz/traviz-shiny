@@ -41,4 +41,6 @@ vignettes/*.pdf
 # pkgdown site
 docs/
 
-rsconnect/shinyapps.io/jammurz
+docs/rsconnect
+inst/docs/rsconnect
+rsconnect
