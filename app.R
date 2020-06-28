@@ -1,6 +1,8 @@
 library(shiny)
 library(traviz)
 library(raster)
+load("data/ec.trj.rda")
+
 
 ui <- fluidPage(
     titlePanel("traviz Demo with enviroCar data"),
@@ -15,7 +17,7 @@ ui <- fluidPage(
                                     "Plot trajectory intersections",
                                     "Rasterize data with value",
                                     "Show heatmap of value",
-                                    "Show quadrat heatmap of value",
+                                    "Show quadrat heatmap of trajectory density",
                                     "Show Frechet distance clusters of trajectories"),
                         selected = "Plot trajectories"),
 
@@ -40,21 +42,21 @@ ui <- fluidPage(
                                         "Consumption.value")),
 
                 sliderInput("raster_resolution", "Pixel resolution",
-                            min = .0001, max = .003,
-                            value = .0001, step = .0001),
+                            min = .0001, max = .05,
+                            value = .001, step = .0001),
 
                 sliderInput("lat", "Latitude",
-                            min = as.numeric(st_bbox(ec.trj_rast)[1]),
-                            max = as.numeric(st_bbox(ec.trj_rast)[3]),
-                            value = c(as.numeric(st_bbox(ec.trj_rast)[1]),
-                                      as.numeric(st_bbox(ec.trj_rast)[3])),
+                            min = as.numeric(st_bbox(ec.trj)[1]),
+                            max = as.numeric(st_bbox(ec.trj)[3]),
+                            value = c(as.numeric(st_bbox(ec.trj)[1]),
+                                      as.numeric(st_bbox(ec.trj)[3])),
                             step = .01),
 
                 sliderInput("lon", "Longitude",
-                            min = as.numeric(st_bbox(ec.trj_rast)[2]),
-                            max = as.numeric(st_bbox(ec.trj_rast)[4]),
-                            value = c(as.numeric(st_bbox(ec.trj_rast)[2]),
-                                      as.numeric(st_bbox(ec.trj_rast)[4])),
+                            min = as.numeric(st_bbox(ec.trj)[2]),
+                            max = as.numeric(st_bbox(ec.trj)[4]),
+                            value = c(as.numeric(st_bbox(ec.trj)[2]),
+                                      as.numeric(st_bbox(ec.trj)[4])),
                             step = .01),
 
                 checkboxInput("idwi", "Use inverse distance weighted interpolation?", FALSE)
@@ -69,8 +71,8 @@ ui <- fluidPage(
                                         "Speed.value",
                                         "Consumption.value")),
                 sliderInput("heatmap_resolution", "Pixel resolution",
-                            min = .0001, max = .003,
-                            value = .0001, step = .0001)
+                            min = .0001, max = .05,
+                            value = .001, step = .0001)
             ),
 
             conditionalPanel(
@@ -99,11 +101,11 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-    load("data/ec.trj.rda")
     #subset data for speed
     ec.trj_rast <- ec.trj[1:20,]
     ec.trj <- ec.trj[63:83,]
-
+    st_crs(ec.trj) <- 4326
+    sftc <- df_to_sfTracks(ec.trj)
     ec.trj_un <- ec.trj %>% unnest
     ec.trj_rast_un <- ec.trj_rast %>% unnest
 
@@ -138,6 +140,7 @@ server <- function(input, output) {
     })
 
     tracks_quadrat <- reactive({
+        library(spatstat)
         return(traj_quadrat(ec.trj_un))
     })
 
@@ -151,7 +154,7 @@ server <- function(input, output) {
         else if(input$functions == "Plot trajectory intersections") {tracks_intersection()}
         else if(input$functions == "Rasterize data with value") {plot(tracks_rasterize())}
         else if(input$functions == "Show heatmap of value") {(tracks_heatmap())}
-        else if(input$functions == "Show quadrat heatmap of value") {tracks_quadrat()}
+        else if(input$functions == "Show quadrat heatmap of trajectory density") {tracks_quadrat()}
         else if(input$functions == "Show Frechet distance clusters of trajectories") {plot(tracks_cluster())}
     })
 }

@@ -1,0 +1,12 @@
+name: traviz-shiny
+title: traviz-shiny
+username:
+account: jammurz
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2514644
+bundleId: 3326954
+url: https://jammurz.shinyapps.io/traviz-shiny/
+when: 1593381442.41577
+asMultiple: FALSE
+asStatic: FALSE
