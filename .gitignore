@@ -40,10 +40,3 @@ vignettes/*.pdf
 
 # pkgdown site
 docs/
-
-# rsconnect
-rsconnect/*
-rsconnect/
-/rsconnect/
-/rsconnect/*
-traviz-shiny/rsconnect/shinyapps.io/jammurz/
