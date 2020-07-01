@@ -136,6 +136,7 @@ server <- function(input, output) {
     })
 
     tracks_heatmap <- reactive({
+        library(maptools)
         return(density_heatmap(ec.trj_un, input$heatmap_value, resolution = input$heatmap_resolution))
     })
 
@@ -145,6 +146,7 @@ server <- function(input, output) {
     })
 
     tracks_cluster <- reactive({
+        library(sf)
         return(cluster_traj(ec.trj, input$num_clusters))
     })
 
