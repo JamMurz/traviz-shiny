@@ -71,7 +71,7 @@ ui <- fluidPage(
                                         "Speed.value",
                                         "Consumption.value")),
                 sliderInput("heatmap_resolution", "Pixel resolution",
-                            min = .0001, max = .05,
+                            min = .0001, max = .01,
                             value = .001, step = .0001)
             ),
 
